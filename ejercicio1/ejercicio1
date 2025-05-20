@@ -1,0 +1,107 @@
+class Cuenta:
+  def __init__(self, saldo, tasaAnual):
+    self._saldo = saldo
+    self._numeroConsignaciones = 0
+    self._numeroRetiros = 0
+    self._tasaAnual = tasaAnual
+    self._comisionMensual = 0
+
+  def consignar(self, cantidad):
+    self._saldo += cantidad
+    self._numeroConsignaciones +=1
+
+  def retirar(self, cantidad):
+    newSaldo = self._saldo - cantidad
+    if newSaldo >= 0:
+      self._saldo -= cantidad
+      self._numeroRetiros += 1
+    else:
+      print("La cantidad a retirar excede el saldo actual")
+
+  def calcularInteres(self):
+    tasaMes = self._tasaAnual / 12
+    interesMes = self._saldo * tasaMes
+    self._saldo += interesMes
+
+  def extractoMensual(self):
+    self._saldo -= self._comisionMensual
+    self.calcularInteres()
+
+class CuentaAhorros(Cuenta):
+  def __init__(self, saldo, tasa):
+    super().__init__(saldo, tasa)
+    if saldo < 1000:
+      self._activa = False
+    else:
+      self._activa = True
+
+  def retirar(self, cantidad):
+    if self._activa == True:
+      super().retirar(cantidad)
+
+  def consignar(self, cantidad):
+    if self._activa == True:
+      super().consignar(cantidad)
+
+  def extractoMensual(self):
+    if self._numeroRetiros > 4:
+      self._comisionMensual += (self._numeroRetiros - 4) * 1000
+    super().extractoMensual()
+    if self._saldo < 1000:
+      self._activa = False
+
+  def imprimir(self):
+    print(f"Saldo = ${self._saldo}")
+    print(f"Comisión mensual = ${self._comisionMensual}")
+    print(f"Número de transacciones = ${self._numeroConsignaciones + self._numeroRetiros}")
+    print()
+
+class CuentaCorriente(Cuenta):
+  def __init__(self, saldo, tasa):
+    super().__init__(saldo, tasa)
+    self._sobregiro = 0
+
+  def retirar(self, cantidad):
+    a = self._saldo - cantidad
+    if a<0:
+      self._sobregiro -= a
+    else:
+      super().retirar(cantidad)
+
+  def consignar(self, cantidad):
+    b = self._sobregiro - cantidad
+    if self._sobregiro > 0:
+      if b > 0:
+        self._sobregiro = 0
+        self._saldo = b
+      else:
+        self._sobregiro = -b
+        self._saldo = 0
+    else:
+      super().consignar(cantidad)
+
+  def extractoMensual(self):
+    super().extractoMensual()
+
+  def imprimir(self):
+    print(f"Saldo = ${self._saldo}")
+    print(f"Cargo mensual = ${self._comisionMensual}")
+    print(f"Número de transacciones = ${self._numeroConsignaciones + self._numeroRetiros}")
+    print(f"Valor de sobregiro = ${self._sobregiro}")
+    print()
+
+def main():
+  print(">>>>>Cuenta de ahorros<<<<<\n")
+  saldoInicial = float(input("ingrese el saldo inicial: "))
+  tasaInteres = float(input("Ingrese la tasa de interés: "))
+  cuenta1 = CuentaAhorros(saldoInicial, tasaInteres)
+  consignacion = float(input("Ingrese la cantidad a consignar: "))
+  cuenta1.consignar(consignacion)
+  retiro = float(input("Ingrese la cantidad a retirar: "))
+  cuenta1.retirar(retiro)
+  cuenta1.extractoMensual()
+  cuenta1.imprimir()
+
+if __name__ == "__main__":
+    main()
+
